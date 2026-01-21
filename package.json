@@ -6,6 +6,13 @@
   "browser": "dist/youtube-transcript.esm.js",
   "module": "dist/youtube-transcript.esm.js",
   "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/youtube-transcript.esm.js",
+      "require": "./dist/youtube-transcript.common.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
   "scripts": {
     "build": "rollup -c"
   },
