@@ -174,7 +174,12 @@ export class YoutubeTranscript {
       options
     );
 
-    const { captions: { playerCaptionsTracklistRenderer: captions } } = await InnerTubeApiResponse.json();
+    const responseJson = await InnerTubeApiResponse.json();
+    const captions = responseJson?.captions?.playerCaptionsTracklistRenderer;
+
+    if (!captions) {
+      throw new YoutubeTranscriptDisabledError(identifier);
+    }
 
     const processedTranscript = await this.processTranscriptFromCaptions(
       captions,
