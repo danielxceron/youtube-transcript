@@ -82,11 +82,11 @@ export class YoutubeTranscript {
       body: JSON.stringify({
         context: {
           client: {
-            clientName: 'WEB',
-            clientVersion: '2.20240304.00.00',
+            clientName: 'ANDROID',
+            clientVersion: '19.09.37',
+            androidSdkVersion: 30,
             hl: 'en',
             gl: 'US',
-            userAgent: USER_AGENT
           }
         },
         videoId: identifier,
@@ -141,7 +141,7 @@ if (!captions) {
             (track) => track.languageCode === config?.lang
           )
         : captions.captionTracks[0]
-    ).baseUrl;
+    ).baseUrl.replace('&fmt=srv3', '') + '&fmt=srv1'
 
     const transcriptResponse = await fetch(transcriptURL, {
       headers: {
