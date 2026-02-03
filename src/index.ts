@@ -230,7 +230,8 @@ export class YoutubeTranscript {
     const transcriptURL = (
       config?.lang
         ? captions.captionTracks.find(
-            (track) => track.languageCode === config?.lang
+            (track) => track.languageCode === config?.lang ||
+            track.languageCode.startsWith(config.lang + '-')
           )
         : captions.captionTracks[0]
     ).baseUrl;
