@@ -288,7 +288,7 @@ export class YoutubeTranscript {
     return asrResults.map((block) => {
       let text: string
       const matchAllASRSegment = [...block[3].matchAll(RE_XML_TRANSCRIPT_ASR_SEGMENT)]
-      if (matchAllASRSegment.length > 1) {
+      if (matchAllASRSegment.length) {
         text = matchAllASRSegment
           .map((s) => s[1])
           .join('')
