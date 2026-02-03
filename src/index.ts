@@ -291,7 +291,7 @@ export class YoutubeTranscript {
       if (matchAllASRSegment.length) {
         text = matchAllASRSegment
           .map((s) => s[1])
-          .join(' ')
+          .join('')
           .trim();
       } else {
         text = block[3].replace(/<[^>]*>/g, '').trim();
