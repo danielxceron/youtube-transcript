@@ -154,15 +154,16 @@ export class YoutubeTranscript {
       headers: {
         ...(config?.lang && { 'Accept-Language': config.lang }),
         'Content-Type': 'application/json',
-        Origin: 'https://www.youtube.com',
-        Referer: `https://www.youtube.com/watch?v=${identifier}`
+        'User-Agent': 'com.google.android.youtube/19.09.37 (Linux; Android 13)'
       },
       body: JSON.stringify({
         context: {
           client: {
-            clientName: 'WEB',
-            clientVersion: '2.20250312.04.00',
-            userAgent: USER_AGENT
+            clientName: 'ANDROID',
+            clientVersion: '19.09.37',
+            androidSdkVersion: 33,
+            hl: config?.lang ?? 'en',
+            gl: 'US'
           }
         },
         videoId: identifier,
