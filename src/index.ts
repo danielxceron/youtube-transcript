@@ -259,8 +259,8 @@ export class YoutubeTranscript {
             (track) => track.languageCode === config?.lang ||
             track.languageCode.startsWith(config.lang + '-')
           )
-        : captions.captionTracks.find(t => t.kind === 'asr' && t.languageCode === config?.lang) ||
-        captions.captionTracks.find(t => t.kind === 'asr')
+        : captions.captionTracks.find(t => t.kind === 'asr') ||
+        captions.captionTracks[0]
     ).baseUrl;
 
     const transcriptResponse = await fetch(transcriptURL, {
