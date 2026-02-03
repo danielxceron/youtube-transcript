@@ -199,6 +199,28 @@ export class YoutubeTranscript {
     return processedTranscript;
   }
 
+  private static decodeHTMLEntities(text: string): string {
+    if (!text) return '';
+
+    if (typeof window !== 'undefined' && typeof window.document !== 'undefined') {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(text, 'text/html');
+      return doc.documentElement.textContent ?? '';
+    }
+
+    if (typeof globalThis !== 'undefined') {
+      return text
+        .replace(/&quot;/g, '"')
+        .replace(/&amp;/g, '&')
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .replace(/&#39;/g, "'")
+        .replace(/&#x27;/g, "'");
+    }
+
+    return text;
+  }
+
   /**
    * Process transcript from data captions
    * @param captions Data captions
@@ -277,7 +299,7 @@ export class YoutubeTranscript {
       if (!text) return null;
 
       return {
-        text,
+        text: this.decodeHTMLEntities(text),
         duration: Number(block[2]) / 1000,
         offset: Number(block[1]) / 1000,
         lang: config?.lang ?? captions.captionTracks[0].languageCode,
