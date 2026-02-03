@@ -1,6 +1,6 @@
 {
   "name": "@danielxceron/youtube-transcript",
-  "version": "1.2.3",
+  "version": "1.2.4",
   "description": "Fetch transcript from a youtube video",
   "main": "dist/youtube-transcript.common.js",
   "browser": "dist/youtube-transcript.esm.js",
