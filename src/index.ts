@@ -280,7 +280,8 @@ export class YoutubeTranscript {
         duration: parseFloat(result[2]),
         offset: parseFloat(result[1]),
         lang: config?.lang ?? captions.captionTracks[0].languageCode,
-      }));
+      }))
+      .filter((item) => item.text.trim() !== '');
     }
 
     const asrResults = [...transcriptBody.matchAll(RE_XML_TRANSCRIPT_ASR)];
@@ -296,7 +297,7 @@ export class YoutubeTranscript {
         text = block[3]
       }
 
-      if (!text) return null;
+      if (!text || text.trim() === '') return null;
 
       return {
         text: this.decodeHTMLEntities(text),
