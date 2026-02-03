@@ -4,6 +4,10 @@ const USER_AGENT =
   'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.83 Safari/537.36,gzip(gfe)';
 const RE_XML_TRANSCRIPT =
   /<text start="([^"]*)" dur="([^"]*)">([^<]*)<\/text>/g;
+const RE_XML_TRANSCRIPT_ASR =
+  /<p t="(\d+)" d="(\d+)"[^>]*>([\s\S]*?)<\/p>/g;
+const RE_XML_TRANSCRIPT_ASR_SEGMENT =
+  /<s[^>]*>([^<]*)<\/s>/g;
 
 export class YoutubeTranscriptError extends Error {
   constructor(message) {
@@ -233,7 +237,8 @@ export class YoutubeTranscript {
             (track) => track.languageCode === config?.lang ||
             track.languageCode.startsWith(config.lang + '-')
           )
-        : captions.captionTracks[0]
+        : captions.captionTracks.find(t => t.kind === 'asr' && t.languageCode === config?.lang) ||
+        captions.captionTracks.find(t => t.kind === 'asr')
     ).baseUrl;
 
     const transcriptResponse = await fetch(transcriptURL, {
@@ -247,12 +252,38 @@ export class YoutubeTranscript {
     }
     const transcriptBody = await transcriptResponse.text();
     const results = [...transcriptBody.matchAll(RE_XML_TRANSCRIPT)];
-    return results.map((result) => ({
-      text: result[3],
-      duration: parseFloat(result[2]),
-      offset: parseFloat(result[1]),
-      lang: config?.lang ?? captions.captionTracks[0].languageCode,
-    }));
+    if (results.length) {
+      return results.map((result) => ({
+        text: result[3],
+        duration: parseFloat(result[2]),
+        offset: parseFloat(result[1]),
+        lang: config?.lang ?? captions.captionTracks[0].languageCode,
+      }));
+    }
+
+    const asrResults = [...transcriptBody.matchAll(RE_XML_TRANSCRIPT_ASR)];
+    return asrResults.map((block) => {
+      let text: string
+      const matchAllASRSegment = [...block[3].matchAll(RE_XML_TRANSCRIPT_ASR_SEGMENT)]
+      if (matchAllASRSegment.length > 1) {
+        text = matchAllASRSegment
+          .map((s) => s[1])
+          .join('')
+          .trim();
+      } else {
+        text = block[3]
+      }
+
+      if (!text) return null;
+
+      return {
+        text,
+        duration: Number(block[2]) / 1000,
+        offset: Number(block[1]) / 1000,
+        lang: config?.lang ?? captions.captionTracks[0].languageCode,
+      };
+
+    }).filter(Boolean) as TranscriptResponse[];
   }
 
   /**
