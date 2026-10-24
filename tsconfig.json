@@ -1,22 +1,20 @@
 {
   "compilerOptions": {
-    "target": "ES2015",
+    "target": "ES2020",
     "module": "esnext",
-    "strict": false,
-    "declaration": true,
-    "declarationDir": "dist",
+    "moduleResolution": "bundler",
+    "strict": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "importHelpers": true,
-    "moduleResolution": "node",
-    "experimentalDecorators": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
     "sourceMap": true,
-    "baseUrl": ".",
-    "lib": ["esnext", "dom"],
-    "typeRoots": ["node_modules/@types"]
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "types": []
   },
-  "include": ["src/*.ts"],
-  "exclude": ["node_modules", "dist"]
+  "include": ["src/**/*.ts"],
+  "exclude": ["node_modules", "dist", "tests"]
 }

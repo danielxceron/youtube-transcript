@@ -4,16 +4,16 @@
 
 ## About This Fork
 
-This is a fork of the original youtube-transcript package that adds a **fallback system** for improved reliability. The original package used only HTML scraping, which sometimes fails or returns empty results. This version automatically falls back to YouTube's InnerTube API when needed.
-
-⚠️ **Note**: The InnerTube API fallback works best in client-side and local server environments.
+This is a fork of the original youtube-transcript package with a resilient extraction pipeline. It tries YouTube's InnerTube API first and falls back to HTML scraping when needed, so a single blocked route does not break transcript retrieval.
 
 ## What's New
 
-- **Dual extraction methods**: HTML scraping + InnerTube API fallback
-- **YouTube Shorts support**: Enhanced URL regex for `/shorts/` URLs
-- **Better error handling**: New `YoutubeTranscriptEmptyError` class
-- **Improved reliability**: Automatic fallback increases success rate
+- **InnerTube first**: signed caption URLs from the Android and iOS clients, rotated automatically
+- **HTML scraping fallback** when InnerTube returns no captions
+- **Reusable clients** with timeouts, retries, concurrency limits and caching
+- **Batch fetching** with per-video results
+- **Robust parsers** for srv1, srv3 and json3 caption formats
+- **Complete HTML entity decoding** including numeric and double-encoded entities
 
 ## Installation
 
@@ -21,49 +21,108 @@ This is a fork of the original youtube-transcript package that adds a **fallback
 $ npm i @danielxceron/youtube-transcript
 ```
 
-or
-
-```bash
-$ yarn add @danielxceron/youtube-transcript
-```
-
 ## Usage
 
 ```js
 import { YoutubeTranscript } from '@danielxceron/youtube-transcript';
 
-YoutubeTranscript.fetchTranscript('videoId or URL').then(console.log);
+const transcript = await YoutubeTranscript.fetchTranscript('videoId or URL');
+console.log(transcript);
 ```
+
+Each segment has the shape `{ text, duration, offset, lang }`, where `duration` and `offset` are in seconds.
+
+### Reusable client
+
+For servers and long-running processes, create one client and share it:
+
+```js
+import { YoutubeTranscript } from '@danielxceron/youtube-transcript';
+
+const youtube = YoutubeTranscript.create({
+  timeoutMs: 15000,
+  retries: 2,
+  concurrency: 8,
+  cache: { ttlMs: 300000, maxEntries: 500 },
+});
+
+const transcript = await youtube.fetchTranscript('videoId', { lang: 'en' });
+```
+
+### Batch fetching
+
+```js
+const results = await youtube.fetchTranscripts(['videoIdA', 'videoIdB', 'videoIdC']);
+
+for (const { videoId, transcript, error } of results) {
+  if (error) console.error(videoId, error.message);
+  else console.log(videoId, transcript.length);
+}
+```
+
+Duplicate identifiers are fetched only once.
+
+### Options
+
+| Option        | Default     | Description                                            |
+| ------------- | ----------- | ------------------------------------------------------ |
+| `fetch`       | global fetch| Custom fetch implementation (proxies, undici, tests)   |
+| `timeoutMs`   | `20000`     | Timeout per HTTP request                               |
+| `retries`     | `2`         | Retries for network errors, `429` and `5xx`            |
+| `concurrency` | `6`         | Maximum in-flight requests per client                  |
+| `cache`       | enabled     | `false` disables it, or `{ ttlMs, maxEntries }`        |
+| `clients`     | Android→iOS | Custom InnerTube clients                               |
+| `apiKey`      | public key  | InnerTube API key                                      |
+| `userAgent`   | Chrome      | User agent used by the HTML strategy                   |
+| `htmlFallback`| `true`      | Disable to skip HTML scraping                          |
+
+Per-call options: `lang`, `timeoutMs`, `retries`, `signal`, `cookie`.
 
 ### Supported URL Formats
 
 - Standard videos: `https://www.youtube.com/watch?v=VIDEO_ID`
 - Short URLs: `https://youtu.be/VIDEO_ID`
-- **YouTube Shorts**: `https://www.youtube.com/shorts/VIDEO_ID`
+- YouTube Shorts: `https://www.youtube.com/shorts/VIDEO_ID`
+- Live: `https://www.youtube.com/live/VIDEO_ID`
 - Embedded videos: `https://www.youtube.com/embed/VIDEO_ID`
 - Direct video IDs: `VIDEO_ID`
 
-### Methods
-
-- `fetchTranscript(videoId: string [,options: TranscriptConfig]): Promise<TranscriptResponse[]>`
-
-## Environment Compatibility
-
-| Method        | Client-Side | Local Server | Production Server       |
-| ------------- | ----------- | ------------ | ----------------------- |
-| HTML Scraping | ✅          | ✅           | ✅                      |
-| InnerTube API | ✅          | ✅           | ⚠️ May have limitations |
-
-The package automatically uses the best available method for your environment.
+Language matching uses regional prefixes, so `lang: 'en'` accepts `en`, `en-US` and `en-GB`. Manual captions are preferred over automatic ones.
 
 ## Error Handling
 
-- `YoutubeTranscriptTooManyRequestError`: Rate limiting detected
-- `YoutubeTranscriptVideoUnavailableError`: Video not accessible
-- `YoutubeTranscriptDisabledError`: Transcripts disabled for video
-- `YoutubeTranscriptNotAvailableError`: No transcripts available
-- `YoutubeTranscriptNotAvailableLanguageError`: Requested language not available
-- `YoutubeTranscriptEmptyError`: Empty response (triggers fallback method)
+- `YoutubeTranscriptTooManyRequestError`: rate limiting detected
+- `YoutubeTranscriptVideoUnavailableError`: video not accessible
+- `YoutubeTranscriptDisabledError`: transcripts disabled for video
+- `YoutubeTranscriptNotAvailableError`: no transcripts available
+- `YoutubeTranscriptNotAvailableLanguageError`: requested language not available
+- `YoutubeTranscriptEmptyError`: every extraction strategy returned nothing
+- `YoutubeTranscriptNetworkError`: transport failure after retries
+- `YoutubeTranscriptAbortError`: request aborted through `signal`
+
+Every error exposes `name`, `videoId` (when applicable) and `cause` (when wrapped).
+
+## Testing
+
+```bash
+$ npm test                # unit tests, mocked network
+$ npm run typecheck
+$ npm run build
+$ npm run smoke -- dQw4w9WgXcQ
+```
+
+Live tests against YouTube are opt-in:
+
+```bash
+$ YOUTUBE_TRANSCRIPT_LIVE=1 npm test
+```
+
+## Environment Compatibility
+
+| Strategy      | Client-Side | Local Server | Production Server |
+| ------------- | ----------- | ------------ | ----------------- |
+| InnerTube API | ✅          | ✅           | ✅                |
+| HTML Scraping | ✅          | ✅           | ✅                |
 
 ## License
 
