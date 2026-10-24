@@ -5,7 +5,7 @@ const input = 'src/index.ts';
 function createConfig(file, format, compact = false) {
   return {
     input,
-    plugins: [typescript({ tsconfig: './tsconfig.json', declaration: true, declarationDir: 'dist' })],
+    plugins: [typescript({ tsconfig: './tsconfig.build.json' })],
     output: {
       file,
       format,

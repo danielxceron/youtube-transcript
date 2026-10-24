@@ -1,7 +1,4 @@
-import {
-  YoutubeTranscriptNotAvailableError,
-  YoutubeTranscriptTooManyRequestError,
-} from './errors';
+import { YoutubeTranscriptNotAvailableError, YoutubeTranscriptTooManyRequestError } from './errors';
 import type { HttpClient, RequestOptions } from './http';
 import { parseJson3, parseTimedText } from './parser';
 import type { TranscriptResponse } from './types';
@@ -16,7 +13,7 @@ export interface TimedTextOptions {
 
 export async function downloadTimedText(
   http: HttpClient,
-  options: TimedTextOptions
+  options: TimedTextOptions,
 ): Promise<TranscriptResponse[]> {
   const result = await http.request(
     options.baseUrl,
@@ -26,7 +23,7 @@ export async function downloadTimedText(
         'Accept-Language': options.language,
       },
     },
-    options.request
+    options.request,
   );
 
   if (result.status === 429) {

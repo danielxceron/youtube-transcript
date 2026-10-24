@@ -83,7 +83,7 @@ export function watchPage(tracks: CaptionTrack[] | null = TRACKS, status = 'OK')
 export function jsonResponse(
   payload: unknown,
   status = 200,
-  headers: Record<string, string> = {}
+  headers: Record<string, string> = {},
 ): Response {
   return new Response(JSON.stringify(payload), {
     status,
@@ -94,7 +94,7 @@ export function jsonResponse(
 export function textResponse(
   body: string,
   status = 200,
-  headers: Record<string, string> = {}
+  headers: Record<string, string> = {},
 ): Response {
   return new Response(body, { status, headers });
 }
@@ -111,7 +111,7 @@ export interface FetchMock extends FetchLike {
 
 export type FetchHandler = (
   url: string,
-  init: RequestInit
+  init: RequestInit,
 ) => Response | Promise<Response> | undefined;
 
 export function createFetchMock(handler: FetchHandler): FetchMock {
@@ -128,7 +128,7 @@ export function createFetchMock(handler: FetchHandler): FetchMock {
     calls,
     count(pattern: string | RegExp): number {
       return calls.filter((call) =>
-        typeof pattern === 'string' ? call.url.includes(pattern) : pattern.test(call.url)
+        typeof pattern === 'string' ? call.url.includes(pattern) : pattern.test(call.url),
       ).length;
     },
   });

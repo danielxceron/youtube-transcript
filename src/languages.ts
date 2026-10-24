@@ -15,7 +15,7 @@ export function matchesLanguage(trackLanguage: string, requested: string): boole
 
 export function selectCaptionTrack(
   tracks: CaptionTrack[],
-  lang?: string
+  lang?: string,
 ): CaptionTrack | undefined {
   if (!tracks.length) return undefined;
 
@@ -28,5 +28,7 @@ export function selectCaptionTrack(
   const candidates = tracks.filter((track) => matchesLanguage(track.languageCode, lang));
   if (!candidates.length) return undefined;
 
-  return candidates.find(manual) ?? candidates.find((track) => track.kind === 'asr') ?? candidates[0];
+  return (
+    candidates.find(manual) ?? candidates.find((track) => track.kind === 'asr') ?? candidates[0]
+  );
 }

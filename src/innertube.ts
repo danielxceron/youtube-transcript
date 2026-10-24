@@ -39,7 +39,7 @@ export function playerHeaders(client: InnerTubeClient): Record<string, string> {
 export function playerRequestBody(
   client: InnerTubeClient,
   videoId: string,
-  language: string
+  language: string,
 ): Record<string, unknown> {
   return {
     context: {

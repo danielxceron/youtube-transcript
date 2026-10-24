@@ -27,9 +27,7 @@ export function parseAttributes(source: string): Record<string, string> {
 }
 
 export function normalizeText(value: string): string {
-  return decodeHtmlEntities(value.replace(BREAK, ' ').replace(TAG, ''))
-    .replace(/\s+/g, ' ')
-    .trim();
+  return decodeHtmlEntities(value.replace(BREAK, ' ').replace(TAG, '')).replace(/\s+/g, ' ').trim();
 }
 
 export function parseJson3(payload: unknown, lang?: string): TranscriptResponse[] {

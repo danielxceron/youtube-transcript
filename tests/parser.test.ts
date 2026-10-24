@@ -30,8 +30,11 @@ describe('parseTimedText', () => {
   });
 
   it('ignores empty paragraphs and paragraphs without timing', () => {
-    const xml = '<body><p t="14030" w="1" a="1">\n</p><p w="1">texto</p><p t="100" d="50">ok</p></body>';
-    expect(parseTimedText(xml)).toEqual([{ text: 'ok', offset: 0.1, duration: 0.05, lang: undefined }]);
+    const xml =
+      '<body><p t="14030" w="1" a="1">\n</p><p w="1">texto</p><p t="100" d="50">ok</p></body>';
+    expect(parseTimedText(xml)).toEqual([
+      { text: 'ok', offset: 0.1, duration: 0.05, lang: undefined },
+    ]);
   });
 
   it('uses a zero duration when the attribute is missing', () => {

@@ -2,6 +2,27 @@
 
 All notable changes to this project are documented in this file.
 
+## [Unreleased]
+
+### Added
+
+- MIT `LICENSE` file and `.editorconfig`.
+- Prettier configuration with `format` and `format:check` scripts.
+- GitHub Actions CI (Node 20, 22 and 24), a scheduled live-test workflow and a tag-driven release workflow.
+- Dependabot for npm and GitHub Actions.
+- `check`, `prepack` and `prepublishOnly` scripts.
+- Separate `tsconfig.build.json` for the bundle; `tsconfig.json` now typechecks sources and tests.
+
+### Changed
+
+- `engines.node` raised to `>=20` to match the test toolchain.
+- `package.json` metadata: `repository` object, `bugs` URL, expanded keywords.
+
+### Removed
+
+- `.eslintignore` (no ESLint setup) and `tsconfig.test.json`.
+- Stale `.gitignore` entries (`.editorconfig`, `/storybook-static`, `*.sln`, `*.njsproj`).
+
 ## [2.0.0] - 2026-10-24
 
 ### Added

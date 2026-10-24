@@ -48,7 +48,7 @@ interface Strategy {
   fetch: (
     identifier: string,
     lang: string | undefined,
-    config: TranscriptConfig
+    config: TranscriptConfig,
   ) => Promise<TranscriptResponse[]>;
 }
 
@@ -72,7 +72,9 @@ export class YoutubeTranscript {
     this.cache =
       options.cache === false
         ? undefined
-        : new TranscriptCache(options.cache === undefined || options.cache === true ? {} : options.cache);
+        : new TranscriptCache(
+            options.cache === undefined || options.cache === true ? {} : options.cache,
+          );
     this.clients = options.clients?.length ? options.clients : DEFAULT_CLIENTS;
     this.apiKey = options.apiKey ?? YOUTUBE_API_KEY;
     this.userAgent = options.userAgent ?? HTML_USER_AGENT;
@@ -83,13 +85,16 @@ export class YoutubeTranscript {
     return new YoutubeTranscript(options);
   }
 
-  static fetchTranscript(videoId: string, config?: TranscriptConfig): Promise<TranscriptResponse[]> {
+  static fetchTranscript(
+    videoId: string,
+    config?: TranscriptConfig,
+  ): Promise<TranscriptResponse[]> {
     return YoutubeTranscript.sharedInstance().fetchTranscript(videoId, config);
   }
 
   static fetchTranscripts(
     videoIds: string[],
-    config?: TranscriptConfig
+    config?: TranscriptConfig,
   ): Promise<TranscriptBatchResult[]> {
     return YoutubeTranscript.sharedInstance().fetchTranscripts(videoIds, config);
   }
@@ -105,7 +110,7 @@ export class YoutubeTranscript {
 
   async fetchTranscript(
     input: string,
-    config: TranscriptConfig = {}
+    config: TranscriptConfig = {},
   ): Promise<TranscriptResponse[]> {
     const identifier = retrieveVideoId(input);
     const lang = normalizeLanguage(config.lang);
@@ -121,7 +126,10 @@ export class YoutubeTranscript {
         const transcript = await strategy.fetch(identifier, lang, config);
         if (!transcript.length) throw new YoutubeTranscriptEmptyError(identifier, strategy.name);
 
-        this.cache?.set(cacheKey, transcript.map((segment) => ({ ...segment })));
+        this.cache?.set(
+          cacheKey,
+          transcript.map((segment) => ({ ...segment })),
+        );
         return transcript;
       } catch (error) {
         const transcriptError = toTranscriptError(error, identifier);
@@ -141,7 +149,7 @@ export class YoutubeTranscript {
 
   async fetchTranscripts(
     videoIds: string[],
-    config: TranscriptConfig = {}
+    config: TranscriptConfig = {},
   ): Promise<TranscriptBatchResult[]> {
     if (!Array.isArray(videoIds)) {
       throw new TypeError('videoIds must be an array of YouTube video ids or URLs');
@@ -155,7 +163,7 @@ export class YoutubeTranscript {
         } catch (error) {
           return { videoId, error: toTranscriptError(error, videoId) };
         }
-      })
+      }),
     );
   }
 
@@ -184,7 +192,7 @@ export class YoutubeTranscript {
   private async fetchWithInnerTube(
     identifier: string,
     lang: string | undefined,
-    config: TranscriptConfig
+    config: TranscriptConfig,
   ): Promise<TranscriptResponse[]> {
     const errors: YoutubeTranscriptError[] = [];
 
@@ -211,7 +219,7 @@ export class YoutubeTranscript {
     client: InnerTubeClient,
     identifier: string,
     lang: string | undefined,
-    config: TranscriptConfig
+    config: TranscriptConfig,
   ): Promise<TranscriptResponse[]> {
     const language = lang ?? 'en';
     const result = await this.http.request(
@@ -221,13 +229,13 @@ export class YoutubeTranscript {
         headers: { ...playerHeaders(client), 'Accept-Language': language },
         body: JSON.stringify(playerRequestBody(client, identifier, language)),
       },
-      this.requestOptions(config)
+      this.requestOptions(config),
     );
 
     if (result.status === 429) throw new YoutubeTranscriptTooManyRequestError();
     if (!result.ok) {
       throw new YoutubeTranscriptNetworkError(
-        `InnerTube request failed with status ${result.status} (${identifier})`
+        `InnerTube request failed with status ${result.status} (${identifier})`,
       );
     }
 
@@ -237,7 +245,7 @@ export class YoutubeTranscript {
     } catch (error) {
       throw new YoutubeTranscriptNetworkError(
         `Invalid InnerTube response for ${identifier}`,
-        error
+        error,
       );
     }
 
@@ -254,7 +262,7 @@ export class YoutubeTranscript {
       throw new YoutubeTranscriptNotAvailableLanguageError(
         lang ?? language,
         tracks.map((item) => item.languageCode),
-        identifier
+        identifier,
       );
     }
 
@@ -270,7 +278,7 @@ export class YoutubeTranscript {
   private async fetchWithHtmlCaptions(
     identifier: string,
     lang: string | undefined,
-    config: TranscriptConfig
+    config: TranscriptConfig,
   ): Promise<TranscriptResponse[]> {
     const language = lang ?? 'en';
     const result = await this.http.request(
@@ -281,7 +289,7 @@ export class YoutubeTranscript {
           'Accept-Language': language,
         },
       },
-      this.requestOptions(config)
+      this.requestOptions(config),
     );
 
     if (result.status === 429) throw new YoutubeTranscriptTooManyRequestError();
@@ -308,7 +316,7 @@ export class YoutubeTranscript {
       throw new YoutubeTranscriptNotAvailableLanguageError(
         lang ?? language,
         tracks.map((item) => item.languageCode),
-        identifier
+        identifier,
       );
     }
 
@@ -337,6 +345,6 @@ function toTranscriptError(error: unknown, videoId: string): YoutubeTranscriptEr
   const detail = error instanceof Error ? error.message : String(error);
   return new YoutubeTranscriptNetworkError(
     `Unexpected error while fetching transcript (${videoId}): ${detail}`,
-    error
+    error,
   );
 }

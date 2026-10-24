@@ -1,6 +1,8 @@
 # youtube-transcript
 
 [![npm version](https://img.shields.io/npm/v/@danielxceron/youtube-transcript.svg)](https://www.npmjs.com/package/@danielxceron/youtube-transcript)
+[![CI](https://github.com/danielxceron/youtube-transcript/actions/workflows/ci.yml/badge.svg)](https://github.com/danielxceron/youtube-transcript/actions/workflows/ci.yml)
+[![license](https://img.shields.io/npm/l/@danielxceron/youtube-transcript.svg)](LICENSE)
 
 ## About This Fork
 
@@ -14,6 +16,8 @@ This is a fork of the original youtube-transcript package with a resilient extra
 - **Batch fetching** with per-video results
 - **Robust parsers** for srv1, srv3 and json3 caption formats
 - **Complete HTML entity decoding** including numeric and double-encoded entities
+
+See [CHANGELOG.md](CHANGELOG.md) for the full history.
 
 ## Upgrading from 1.x
 
@@ -80,17 +84,17 @@ Duplicate identifiers are fetched only once.
 
 ### Options
 
-| Option        | Default     | Description                                            |
-| ------------- | ----------- | ------------------------------------------------------ |
-| `fetch`       | global fetch| Custom fetch implementation (proxies, undici, tests)   |
-| `timeoutMs`   | `20000`     | Timeout per HTTP request                               |
-| `retries`     | `2`         | Retries for network errors, `429` and `5xx`            |
-| `concurrency` | `6`         | Maximum in-flight requests per client                  |
-| `cache`       | enabled     | `false` disables it, or `{ ttlMs, maxEntries }`        |
-| `clients`     | Android→iOS | Custom InnerTube clients                               |
-| `apiKey`      | public key  | InnerTube API key                                      |
-| `userAgent`   | Chrome      | User agent used by the HTML strategy                   |
-| `htmlFallback`| `true`      | Disable to skip HTML scraping                          |
+| Option         | Default      | Description                                          |
+| -------------- | ------------ | ---------------------------------------------------- |
+| `fetch`        | global fetch | Custom fetch implementation (proxies, undici, tests) |
+| `timeoutMs`    | `20000`      | Timeout per HTTP request                             |
+| `retries`      | `2`          | Retries for network errors, `429` and `5xx`          |
+| `concurrency`  | `6`          | Maximum in-flight requests per client                |
+| `cache`        | enabled      | `false` disables it, or `{ ttlMs, maxEntries }`      |
+| `clients`      | Android→iOS  | Custom InnerTube clients                             |
+| `apiKey`       | public key   | InnerTube API key                                    |
+| `userAgent`    | Chrome       | User agent used by the HTML strategy                 |
+| `htmlFallback` | `true`       | Disable to skip HTML scraping                        |
 
 Per-call options: `lang`, `timeoutMs`, `retries`, `signal`, `cookie`.
 
@@ -118,20 +122,34 @@ Language matching uses regional prefixes, so `lang: 'en'` accepts `en`, `en-US` 
 
 Every error exposes `name`, `videoId` (when applicable) and `cause` (when wrapped).
 
-## Testing
+## Development
+
+Requires Node.js 20 or newer (`.nvmrc` pins 22).
 
 ```bash
-$ npm test                # unit tests, mocked network
+$ npm ci
+$ npm run check         # format:check + typecheck + tests + build
+$ npm test              # unit tests, mocked network
 $ npm run typecheck
+$ npm run format
 $ npm run build
 $ npm run smoke -- dQw4w9WgXcQ
 ```
 
-Live tests against YouTube are opt-in:
+Run a single file or watch mode:
 
 ```bash
-$ YOUTUBE_TRANSCRIPT_LIVE=1 npm test
+$ npx vitest run tests/transcript.test.ts
+$ npm run test:watch
 ```
+
+Live tests hit YouTube for real and are opt-in:
+
+```bash
+$ YOUTUBE_TRANSCRIPT_LIVE=1 npx vitest run tests/live.test.ts
+```
+
+CI covers Node 20, 22 and 24; a scheduled workflow runs the live suite weekly. Releases are published by GitHub Actions when a `v*` tag is pushed, using the `NPM_TOKEN` secret and npm provenance.
 
 ## Environment Compatibility
 
@@ -142,4 +160,6 @@ $ YOUTUBE_TRANSCRIPT_LIVE=1 npm test
 
 ## License
 
-**[MIT](LICENSE)** Licensed
+**[MIT](LICENSE)** © 2026 Daniel Cerón Claros
+
+Based on [youtube-transcript](https://github.com/Kakulukian/youtube-transcript) by Kakulukian.

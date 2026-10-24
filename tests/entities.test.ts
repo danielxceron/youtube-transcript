@@ -7,7 +7,7 @@ describe('decodeHtmlEntities', () => {
   });
 
   it('decodes decimal entities', () => {
-    expect(decodeHtmlEntities('adi&#243;s &#39;ok&#39;')).toBe('adiós \'ok\'');
+    expect(decodeHtmlEntities('adi&#243;s &#39;ok&#39;')).toBe("adiós 'ok'");
   });
 
   it('decodes hexadecimal entities', () => {

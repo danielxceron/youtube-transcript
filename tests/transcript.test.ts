@@ -40,7 +40,9 @@ function createClient(handler: FetchHandler, options: CreateTranscriptOptions = 
   return { client, mock };
 }
 
-function standardHandler(overrides: Partial<Record<'player' | 'timedtext' | 'watch', () => Response>> = {}): FetchHandler {
+function standardHandler(
+  overrides: Partial<Record<'player' | 'timedtext' | 'watch', () => Response>> = {},
+): FetchHandler {
   return (url) => {
     if (isPlayerRequest(url)) return overrides.player?.() ?? jsonResponse(playerPayload());
     if (isTimedTextRequest(url)) return overrides.timedtext?.() ?? textResponse(SRV3_XML);
@@ -109,7 +111,7 @@ describe('YoutubeTranscript.fetchTranscript', () => {
     });
 
     await expect(client.fetchTranscript(VIDEO_ID, { lang: 'fr' })).rejects.toBeInstanceOf(
-      YoutubeTranscriptNotAvailableLanguageError
+      YoutubeTranscriptNotAvailableLanguageError,
     );
   });
 
@@ -133,7 +135,9 @@ describe('YoutubeTranscript.fetchTranscript', () => {
   });
 
   it('falls back to html scraping when InnerTube has no captions', async () => {
-    const { client, mock } = createClient(standardHandler({ player: () => jsonResponse(playerPayload({ tracks: null })) }));
+    const { client, mock } = createClient(
+      standardHandler({ player: () => jsonResponse(playerPayload({ tracks: null })) }),
+    );
     const transcript = await client.fetchTranscript(VIDEO_ID);
 
     expect(transcript.length).toBe(2);
@@ -144,18 +148,20 @@ describe('YoutubeTranscript.fetchTranscript', () => {
   it('skips the html strategy when disabled', async () => {
     const { client, mock } = createClient(
       standardHandler({ player: () => jsonResponse(playerPayload({ tracks: null })) }),
-      { htmlFallback: false }
+      { htmlFallback: false },
     );
 
     await expect(client.fetchTranscript(VIDEO_ID)).rejects.toBeInstanceOf(
-      YoutubeTranscriptDisabledError
+      YoutubeTranscriptDisabledError,
     );
     expect(mock.count('/watch?v=')).toBe(0);
   });
 
   it('parses srv1 xml and json3 responses', async () => {
     const srv1 = createClient(standardHandler({ timedtext: () => textResponse(SRV1_XML) }));
-    const json3 = createClient(standardHandler({ timedtext: () => textResponse(JSON.stringify(JSON3_PAYLOAD)) }));
+    const json3 = createClient(
+      standardHandler({ timedtext: () => textResponse(JSON.stringify(JSON3_PAYLOAD)) }),
+    );
 
     expect((await srv1.client.fetchTranscript(VIDEO_ID))[0].text).toBe('Hola & adiós');
     expect((await json3.client.fetchTranscript(VIDEO_ID)).map((segment) => segment.text)).toEqual([
@@ -166,7 +172,7 @@ describe('YoutubeTranscript.fetchTranscript', () => {
 
   it('parses automatic caption segments', async () => {
     const { client } = createClient(
-      standardHandler({ timedtext: () => textResponse(SRV3_SEGMENTS_XML) })
+      standardHandler({ timedtext: () => textResponse(SRV3_SEGMENTS_XML) }),
     );
     const transcript = await client.fetchTranscript(VIDEO_ID);
 
@@ -174,12 +180,10 @@ describe('YoutubeTranscript.fetchTranscript', () => {
   });
 
   it('raises an empty transcript error when every strategy returns nothing', async () => {
-    const { client } = createClient(
-      standardHandler({ timedtext: () => textResponse('') })
-    );
+    const { client } = createClient(standardHandler({ timedtext: () => textResponse('') }));
 
     await expect(client.fetchTranscript(VIDEO_ID)).rejects.toBeInstanceOf(
-      YoutubeTranscriptEmptyError
+      YoutubeTranscriptEmptyError,
     );
   });
 
@@ -188,11 +192,11 @@ describe('YoutubeTranscript.fetchTranscript', () => {
       standardHandler({
         player: () => jsonResponse(playerPayload({ tracks: null, status: 'LOGIN_REQUIRED' })),
         watch: () => textResponse(watchPage(null, 'LOGIN_REQUIRED')),
-      })
+      }),
     );
 
     await expect(client.fetchTranscript(VIDEO_ID)).rejects.toBeInstanceOf(
-      YoutubeTranscriptVideoUnavailableError
+      YoutubeTranscriptVideoUnavailableError,
     );
   });
 
@@ -201,21 +205,21 @@ describe('YoutubeTranscript.fetchTranscript', () => {
       standardHandler({
         player: () => jsonResponse(playerPayload({ tracks: null })),
         watch: () => textResponse(watchPage(null)),
-      })
+      }),
     );
 
     await expect(client.fetchTranscript(VIDEO_ID)).rejects.toBeInstanceOf(
-      YoutubeTranscriptDisabledError
+      YoutubeTranscriptDisabledError,
     );
   });
 
   it('does not keep trying strategies after a rate limit', async () => {
     const { client, mock } = createClient(
-      standardHandler({ player: () => textResponse('too many', 429) })
+      standardHandler({ player: () => textResponse('too many', 429) }),
     );
 
     await expect(client.fetchTranscript(VIDEO_ID)).rejects.toBeInstanceOf(
-      YoutubeTranscriptTooManyRequestError
+      YoutubeTranscriptTooManyRequestError,
     );
     expect(mock.count('/watch?v=')).toBe(0);
   });
@@ -226,7 +230,7 @@ describe('YoutubeTranscript.fetchTranscript', () => {
     });
 
     await expect(client.fetchTranscript(VIDEO_ID)).rejects.toBeInstanceOf(
-      YoutubeTranscriptNetworkError
+      YoutubeTranscriptNetworkError,
     );
   });
 
@@ -236,14 +240,14 @@ describe('YoutubeTranscript.fetchTranscript', () => {
     const { client, mock } = createClient(standardHandler());
 
     await expect(
-      client.fetchTranscript(VIDEO_ID, { signal: controller.signal })
+      client.fetchTranscript(VIDEO_ID, { signal: controller.signal }),
     ).rejects.toBeInstanceOf(YoutubeTranscriptAbortError);
     expect(mock.calls).toHaveLength(0);
   });
 
   it('honours the cookie option on the html strategy', async () => {
     const { client, mock } = createClient(
-      standardHandler({ player: () => jsonResponse(playerPayload({ tracks: null })) })
+      standardHandler({ player: () => jsonResponse(playerPayload({ tracks: null })) }),
     );
     await client.fetchTranscript(VIDEO_ID, { cookie: 'SID=abc' });
 
@@ -255,7 +259,7 @@ describe('YoutubeTranscript.fetchTranscript', () => {
     const { client } = createClient(standardHandler());
 
     await expect(client.fetchTranscript('definitely-not-a-video')).rejects.toBeInstanceOf(
-      YoutubeTranscriptError
+      YoutubeTranscriptError,
     );
   });
 });
@@ -300,7 +304,11 @@ describe('YoutubeTranscript.fetchTranscripts', () => {
     const { client } = createClient((url, init) => {
       if (isPlayerRequest(url)) {
         const videoId = requestVideoId(init);
-        return jsonResponse(playerPayload({ tracks: [{ ...TRACKS[2], baseUrl: `${TRACKS[2].baseUrl}&v=${videoId}` }] }));
+        return jsonResponse(
+          playerPayload({
+            tracks: [{ ...TRACKS[2], baseUrl: `${TRACKS[2].baseUrl}&v=${videoId}` }],
+          }),
+        );
       }
       if (isTimedTextRequest(url)) return textResponse(SRV3_XML);
       return undefined;
@@ -326,7 +334,7 @@ describe('YoutubeTranscript.fetchTranscripts', () => {
     const { client } = createClient(standardHandler());
 
     await expect(
-      client.fetchTranscripts('dQw4w9WgXcQ' as unknown as string[])
+      client.fetchTranscripts('dQw4w9WgXcQ' as unknown as string[]),
     ).rejects.toBeInstanceOf(TypeError);
   });
 });

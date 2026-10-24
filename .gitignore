@@ -1,10 +1,14 @@
-.DS_Store
-node_modules
-/dist
+node_modules/
+dist/
+coverage/
+*.tgz
+*.tsbuildinfo
 
 # local env files
-.env.local
-.env.*.local
+.env
+.env.*
+!.env.example
+.npmrc
 
 # Log files
 npm-debug.log*
@@ -12,14 +16,8 @@ yarn-debug.log*
 yarn-error.log*
 
 # Editor directories and files
+.DS_Store
 .history
-.idea
-.vscode
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
+.idea/
+.vscode/
 *.sw?
-.editorconfig
-/storybook-static
-.npmrc

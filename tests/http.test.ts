@@ -1,8 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import {
-  YoutubeTranscriptAbortError,
-  YoutubeTranscriptNetworkError,
-} from '../src/errors';
+import { YoutubeTranscriptAbortError, YoutubeTranscriptNetworkError } from '../src/errors';
 import { HttpClient } from '../src/http';
 import { createFetchMock, headerValue, jsonResponse, textResponse } from './helpers';
 
@@ -23,7 +20,7 @@ describe('HttpClient', () => {
     await client.request(
       'https://example.test/a',
       { headers: { 'User-Agent': 'agent' } },
-      { cookie: 'SID=abc' }
+      { cookie: 'SID=abc' },
     );
 
     expect(headerValue(mock.calls[0].init, 'user-agent')).toBe('agent');
@@ -84,7 +81,7 @@ describe('HttpClient', () => {
     const client = new HttpClient({ fetch: mock, retries: 1 });
 
     await expect(client.request('https://example.test/boom')).rejects.toBeInstanceOf(
-      YoutubeTranscriptNetworkError
+      YoutubeTranscriptNetworkError,
     );
     expect(mock.calls).toHaveLength(2);
   });
@@ -94,7 +91,7 @@ describe('HttpClient', () => {
       (_url, init) =>
         new Promise<Response>((_resolve, reject) => {
           init.signal?.addEventListener('abort', () => reject(new Error('aborted')));
-        })
+        }),
     );
     const client = new HttpClient({ fetch: mock, retries: 0, timeoutMs: 30 });
 
@@ -107,7 +104,7 @@ describe('HttpClient', () => {
       (_url, init) =>
         new Promise<Response>((_resolve, reject) => {
           init.signal?.addEventListener('abort', () => reject(new Error('aborted')));
-        })
+        }),
     );
     const client = new HttpClient({ fetch: mock, retries: 0 });
     const pending = client.request('https://example.test/abort', {}, { signal: controller.signal });
@@ -124,7 +121,7 @@ describe('HttpClient', () => {
     const client = new HttpClient({ fetch: mock });
 
     await expect(
-      client.request('https://example.test/aborted', {}, { signal: controller.signal })
+      client.request('https://example.test/aborted', {}, { signal: controller.signal }),
     ).rejects.toBeInstanceOf(YoutubeTranscriptAbortError);
     expect(mock.calls).toHaveLength(0);
   });
@@ -143,9 +140,7 @@ describe('HttpClient', () => {
     const client = new HttpClient({ fetch: mock, concurrency: 2 });
 
     await Promise.all(
-      Array.from({ length: 6 }, (_value, index) =>
-        client.request(`https://example.test/${index}`)
-      )
+      Array.from({ length: 6 }, (_value, index) => client.request(`https://example.test/${index}`)),
     );
 
     expect(maxActive).toBe(2);

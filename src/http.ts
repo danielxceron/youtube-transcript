@@ -1,7 +1,4 @@
-import {
-  YoutubeTranscriptAbortError,
-  YoutubeTranscriptNetworkError,
-} from './errors';
+import { YoutubeTranscriptAbortError, YoutubeTranscriptNetworkError } from './errors';
 import type { FetchLike } from './types';
 
 const DEFAULT_TIMEOUT_MS = 20000;
@@ -48,7 +45,11 @@ export class HttpClient {
     this.maxConcurrency = Math.max(1, Math.floor(options.concurrency ?? DEFAULT_CONCURRENCY));
   }
 
-  async request(url: string, init: RequestInit = {}, options: RequestOptions = {}): Promise<HttpResult> {
+  async request(
+    url: string,
+    init: RequestInit = {},
+    options: RequestOptions = {},
+  ): Promise<HttpResult> {
     const timeoutMs = options.timeoutMs ?? this.timeoutMs;
     const maxAttempts = Math.max(1, Math.floor(options.retries ?? this.retries) + 1);
     const headers = new Headers(init.headers);
@@ -129,7 +130,7 @@ export class HttpClient {
   private cleanupRequest(
     timer: ReturnType<typeof setTimeout> | undefined,
     signal: AbortSignal | undefined,
-    onAbort: () => void
+    onAbort: () => void,
   ): void {
     if (timer !== undefined) clearTimeout(timer);
     if (signal) signal.removeEventListener('abort', onAbort);

@@ -9,7 +9,7 @@ export class YoutubeTranscriptError extends Error {
   constructor(message: string, options: TranscriptErrorOptions = {}) {
     super(
       `[YoutubeTranscript] 🚨 ${message}`,
-      options.cause === undefined ? undefined : { cause: options.cause }
+      options.cause === undefined ? undefined : { cause: options.cause },
     );
     this.name = new.target.name;
     this.videoId = options.videoId;
@@ -20,7 +20,7 @@ export class YoutubeTranscriptError extends Error {
 export class YoutubeTranscriptTooManyRequestError extends YoutubeTranscriptError {
   constructor() {
     super(
-      'YouTube is receiving too many requests from this IP and now requires solving a captcha to continue'
+      'YouTube is receiving too many requests from this IP and now requires solving a captcha to continue',
     );
   }
 }
@@ -47,9 +47,9 @@ export class YoutubeTranscriptNotAvailableLanguageError extends YoutubeTranscrip
   constructor(lang: string, availableLangs: string[], videoId: string) {
     super(
       `No transcripts are available in ${lang} for this video (${videoId}). Available languages: ${availableLangs.join(
-        ', '
+        ', ',
       )}`,
-      { videoId }
+      { videoId },
     );
   }
 }
