@@ -15,6 +15,22 @@ This is a fork of the original youtube-transcript package with a resilient extra
 - **Robust parsers** for srv1, srv3 and json3 caption formats
 - **Complete HTML entity decoding** including numeric and double-encoded entities
 
+## Upgrading from 1.x
+
+Version 2.0.0 changes observable behavior. The static `fetchTranscript` API keeps working, but these points may require adjustments:
+
+1. **Manual captions are preferred** over automatic ones when no `lang` is given. There is no flag to restore the old ASR-first preference.
+2. **`segment.lang` is the selected track's language** (`de-DE`) instead of the requested one (`de`). Compare with prefixes if needed:
+   ```js
+   const wanted = (segment) => segment.lang?.toLowerCase().startsWith('de');
+   ```
+3. **ESM entry point renamed** from `dist/youtube-transcript.esm.js` to `dist/youtube-transcript.mjs`. Import through the package name or update direct CDN paths.
+4. **Caching and retries are enabled** (`5 min`, `2 retries`, `20 s` timeout). To mimic 1.x latency and freshness:
+   ```js
+   const youtube = YoutubeTranscript.create({ cache: false, retries: 0 });
+   ```
+5. **New error classes**: `YoutubeTranscriptNetworkError` and `YoutubeTranscriptAbortError` now surface transport and abort failures.
+
 ## Installation
 
 ```bash
