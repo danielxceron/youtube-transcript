@@ -78,3 +78,9 @@ export function readPlayability(payload: unknown): PlayabilityStatus {
 
   return { status: playability?.status ?? '', reason: playability?.reason };
 }
+
+const BOT_CHECK_PATTERN = /not a bot|unusual traffic/i;
+
+export function isBotCheckReason(reason?: string): boolean {
+  return Boolean(reason && BOT_CHECK_PATTERN.test(reason));
+}

@@ -71,13 +71,21 @@ export function playerPayload(options: PlayerPayloadOptions = {}): Record<string
   };
 }
 
-export function watchPage(tracks: CaptionTrack[] | null = TRACKS, status = 'OK'): string {
+export function watchPage(
+  tracks: CaptionTrack[] | null = TRACKS,
+  status = 'OK',
+  reason?: string,
+): string {
   const captions =
     tracks === null
       ? 'null'
       : JSON.stringify({ playerCaptionsTracklistRenderer: { captionTracks: tracks } });
+  const playability = JSON.stringify({
+    status,
+    ...(reason ? { reason } : {}),
+  });
 
-  return `<!doctype html><html><body><script>var ytInitialPlayerResponse = {"playabilityStatus":{"status":"${status}"},"captions":${captions},"videoDetails":{"videoId":"${VIDEO_ID}"}};</script></body></html>`;
+  return `<!doctype html><html><body><script>var ytInitialPlayerResponse = {"playabilityStatus":${playability},"captions":${captions},"videoDetails":{"videoId":"${VIDEO_ID}"}};</script></body></html>`;
 }
 
 export function jsonResponse(

@@ -112,6 +112,7 @@ Language matching uses regional prefixes, so `lang: 'en'` accepts `en`, `en-US` 
 ## Error Handling
 
 - `YoutubeTranscriptTooManyRequestError`: rate limiting detected
+- `YoutubeTranscriptRequestBlockedError`: YouTube rejected the request from the current IP (for example, a bot check)
 - `YoutubeTranscriptVideoUnavailableError`: video not accessible
 - `YoutubeTranscriptDisabledError`: transcripts disabled for video
 - `YoutubeTranscriptNotAvailableError`: no transcripts available
@@ -148,6 +149,8 @@ Live tests hit YouTube for real and are opt-in:
 ```bash
 $ YOUTUBE_TRANSCRIPT_LIVE=1 npx vitest run tests/live.test.ts
 ```
+
+YouTube may block requests from cloud-provider IPs with `LOGIN_REQUIRED` and a "Sign in to confirm you're not a bot" reason. The suite reports those cases as skipped with the reason instead of failing, because they are an environment restriction rather than a regression. Run the suite from a residential connection or route requests through a proxy or authenticated cookie if you need a strict result.
 
 CI covers Node 20, 22 and 24; a scheduled workflow runs the live suite weekly. Releases are published by GitHub Actions when a `v*` tag is pushed, using the `NPM_TOKEN` secret and npm provenance.
 

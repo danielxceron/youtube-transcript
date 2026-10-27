@@ -12,11 +12,15 @@ All notable changes to this project are documented in this file.
 - Dependabot for npm and GitHub Actions.
 - `check`, `prepack` and `prepublishOnly` scripts.
 - Separate `tsconfig.build.json` for the bundle; `tsconfig.json` now typechecks sources and tests.
+- `YoutubeTranscriptRequestBlockedError` for IP-level bot checks, with the original YouTube `reason`.
+- The live suite skips IP blocks instead of failing, and reports the blocking reason.
 
 ### Changed
 
 - `engines.node` raised to `>=20` to match the test toolchain.
 - `package.json` metadata: `repository` object, `bugs` URL, expanded keywords.
+- `playabilityStatus` reasons are preserved in unavailable and blocked errors.
+- The batch live test now checks per-video errors instead of assuming every transcript exists.
 
 ### Removed
 

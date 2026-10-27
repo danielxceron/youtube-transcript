@@ -1,7 +1,13 @@
 import type { CaptionTrack } from './types';
 
 const CAPTIONS_MARKER = '"captions":';
-const PLAYABILITY_PATTERN = /"playabilityStatus":\{"status":"([A-Z_]+)"/;
+const PLAYABILITY_PATTERN =
+  /"playabilityStatus":\{"status":"([A-Z_]+)"(?:,"reason":"((?:[^"\\]|\\.)*)")?/;
+
+export interface PlayabilityInfo {
+  status?: string;
+  reason?: string;
+}
 
 export function extractCaptionTracks(html: string): CaptionTrack[] | undefined {
   const markerIndex = html.indexOf(CAPTIONS_MARKER);
@@ -25,8 +31,22 @@ export function extractCaptionTracks(html: string): CaptionTrack[] | undefined {
   }
 }
 
-export function extractPlayabilityStatus(html: string): string | undefined {
-  return PLAYABILITY_PATTERN.exec(html)?.[1];
+export function extractPlayability(html: string): PlayabilityInfo {
+  const match = PLAYABILITY_PATTERN.exec(html);
+  if (!match) return {};
+
+  return {
+    status: match[1],
+    reason: match[2] === undefined ? undefined : decodeJsonString(match[2]),
+  };
+}
+
+function decodeJsonString(value: string): string {
+  try {
+    return JSON.parse(`"${value}"`) as string;
+  } catch {
+    return value;
+  }
 }
 
 function findJsonObjectEnd(source: string, start: number): number {

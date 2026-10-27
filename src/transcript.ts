@@ -7,15 +7,17 @@ import {
   YoutubeTranscriptNetworkError,
   YoutubeTranscriptNotAvailableError,
   YoutubeTranscriptNotAvailableLanguageError,
+  YoutubeTranscriptRequestBlockedError,
   YoutubeTranscriptTooManyRequestError,
   YoutubeTranscriptVideoUnavailableError,
 } from './errors';
-import { extractCaptionTracks, extractPlayabilityStatus } from './html';
+import { extractCaptionTracks, extractPlayability } from './html';
 import { HttpClient, type RequestOptions } from './http';
 import {
   DEFAULT_CLIENTS,
   YOUTUBE_API_KEY,
   YOUTUBE_PLAYER_ENDPOINT,
+  isBotCheckReason,
   playerHeaders,
   playerRequestBody,
   readCaptionTracks,
@@ -250,9 +252,8 @@ export class YoutubeTranscript {
     }
 
     const playability = readPlayability(payload);
-    if (UNAVAILABLE_STATUSES.has(playability.status)) {
-      throw new YoutubeTranscriptVideoUnavailableError(identifier);
-    }
+    const playabilityFailure = playabilityError(identifier, playability.status, playability.reason);
+    if (playabilityFailure) throw playabilityFailure;
 
     const tracks = readCaptionTracks(payload);
     if (!tracks?.length) throw new YoutubeTranscriptDisabledError(identifier);
@@ -303,10 +304,13 @@ export class YoutubeTranscript {
         throw new YoutubeTranscriptTooManyRequestError();
       }
 
-      const status = extractPlayabilityStatus(body);
-      if (status && UNAVAILABLE_STATUSES.has(status)) {
-        throw new YoutubeTranscriptVideoUnavailableError(identifier);
-      }
+      const playability = extractPlayability(body);
+      const playabilityFailure = playabilityError(
+        identifier,
+        playability.status,
+        playability.reason,
+      );
+      if (playabilityFailure) throw playabilityFailure;
 
       throw new YoutubeTranscriptDisabledError(identifier);
     }
@@ -337,6 +341,22 @@ export class YoutubeTranscript {
       cookie: config.cookie,
     };
   }
+}
+
+function playabilityError(
+  videoId: string,
+  status: string | undefined,
+  reason: string | undefined,
+): YoutubeTranscriptError | undefined {
+  if (isBotCheckReason(reason)) {
+    return new YoutubeTranscriptRequestBlockedError(videoId, reason);
+  }
+
+  if (status && UNAVAILABLE_STATUSES.has(status)) {
+    return new YoutubeTranscriptVideoUnavailableError(videoId, reason);
+  }
+
+  return undefined;
 }
 
 function toTranscriptError(error: unknown, videoId: string): YoutubeTranscriptError {

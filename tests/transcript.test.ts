@@ -6,6 +6,7 @@ import {
   YoutubeTranscriptError,
   YoutubeTranscriptNetworkError,
   YoutubeTranscriptNotAvailableLanguageError,
+  YoutubeTranscriptRequestBlockedError,
   YoutubeTranscriptTooManyRequestError,
   YoutubeTranscriptVideoUnavailableError,
 } from '../src/errors';
@@ -192,6 +193,50 @@ describe('YoutubeTranscript.fetchTranscript', () => {
       standardHandler({
         player: () => jsonResponse(playerPayload({ tracks: null, status: 'LOGIN_REQUIRED' })),
         watch: () => textResponse(watchPage(null, 'LOGIN_REQUIRED')),
+      }),
+    );
+
+    await expect(client.fetchTranscript(VIDEO_ID)).rejects.toBeInstanceOf(
+      YoutubeTranscriptVideoUnavailableError,
+    );
+  });
+
+  it('reports a blocked request when YouTube asks for a bot check', async () => {
+    const reason = "Sign in to confirm you're not a bot";
+    const { client } = createClient(
+      standardHandler({
+        player: () =>
+          jsonResponse(playerPayload({ tracks: null, status: 'LOGIN_REQUIRED', reason })),
+        watch: () => textResponse(watchPage(null, 'LOGIN_REQUIRED', reason)),
+      }),
+    );
+
+    await expect(client.fetchTranscript(VIDEO_ID)).rejects.toBeInstanceOf(
+      YoutubeTranscriptRequestBlockedError,
+    );
+  });
+
+  it('reports a blocked request from the html fallback', async () => {
+    const reason = "Sign in to confirm you're not a bot";
+    const { client } = createClient(
+      standardHandler({
+        player: () => jsonResponse(playerPayload({ tracks: null })),
+        watch: () => textResponse(watchPage(null, 'LOGIN_REQUIRED', reason)),
+      }),
+    );
+
+    await expect(client.fetchTranscript(VIDEO_ID)).rejects.toBeInstanceOf(
+      YoutubeTranscriptRequestBlockedError,
+    );
+  });
+
+  it('keeps age-restricted videos as unavailable', async () => {
+    const reason = 'Sign in to confirm your age';
+    const { client } = createClient(
+      standardHandler({
+        player: () =>
+          jsonResponse(playerPayload({ tracks: null, status: 'LOGIN_REQUIRED', reason })),
+        watch: () => textResponse(watchPage(null, 'LOGIN_REQUIRED', reason)),
       }),
     );
 

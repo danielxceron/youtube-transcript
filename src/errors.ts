@@ -26,8 +26,25 @@ export class YoutubeTranscriptTooManyRequestError extends YoutubeTranscriptError
 }
 
 export class YoutubeTranscriptVideoUnavailableError extends YoutubeTranscriptError {
-  constructor(videoId: string) {
-    super(`The video is no longer available (${videoId})`, { videoId });
+  readonly reason?: string;
+
+  constructor(videoId: string, reason?: string) {
+    super(`The video is no longer available (${videoId})${reason ? `: ${reason}` : ''}`, {
+      videoId,
+    });
+    this.reason = reason;
+  }
+}
+
+export class YoutubeTranscriptRequestBlockedError extends YoutubeTranscriptError {
+  readonly reason?: string;
+
+  constructor(videoId: string, reason?: string) {
+    super(
+      `YouTube blocked this request from the current IP (${videoId})${reason ? `: ${reason}` : ''}`,
+      { videoId },
+    );
+    this.reason = reason;
   }
 }
 
